@@ -1,61 +1,81 @@
 """
-Запуск VoxPersonal Super Lite
+Запуск VoxPersonal v4
 """
 
 import sys
-import threading
+import os
+
+def check_dependencies():
+    """Проверка минимальных зависимостей"""
+    print("🔍 Проверка библиотек...")
+    
+    libs = [
+        ('speech_recognition', 'speechrecognition'),
+        ('pyttsx3', 'pyttsx3'),
+        ('pyautogui', 'pyautogui')
+    ]
+    
+    missing = []
+    for import_name, pip_name in libs:
+        try:
+            if import_name == 'speech_recognition':
+                import speech_recognition
+            else:
+                __import__(import_name)
+            print(f"✅ {pip_name}")
+        except ImportError:
+            print(f"❌ {pip_name}")
+            missing.append(pip_name)
+    
+    if missing:
+        print(f"\n📦 Установите: pip install " + " ".join(missing))
+        return False
+    
+    return True
 
 def main():
     print("""
-    ╔══════════════════════════════════════╗
-    ║      🎙️ VoxPersonal Super Lite      ║
-    ║        5 команд • 1 файл            ║
-    ╚══════════════════════════════════════╝
+    ╔══════════════════════════════════════════╗
+    ║        🤖 VoxPersonal v4                ║
+    ║      Умный голосовой помощник           ║
+    ╚══════════════════════════════════════════╝
     """)
     
-    # Проверяем зависимости
-    print("📦 Проверка зависимостей...")
-    try:
-        import speech_recognition
-        import pyttsx3
-        import flask
-        import pyautogui
-        print("✅ Все зависимости установлены")
-    except ImportError as e:
-        print(f"❌ Отсутствует библиотека: {e}")
-        print("   Установите: pip install -r requirements.txt")
+    # Проверка Python
+    if sys.version_info < (3, 7):
+        print("❌ Требуется Python 3.7+")
         return
     
-    # Запускаем веб-панель в отдельном потоке
-    print("🌐 Запуск веб-панели...")
-    print("   Откройте: http://localhost:5000")
+    # Проверка зависимостей
+    if not check_dependencies():
+        print("\n❌ Установите зависимости и перезапустите")
+        return
     
-    web_thread = threading.Thread(target=run_web_server, daemon=True)
-    web_thread.start()
+    print("\n" + "="*60)
+    print("🎉 Система готова к работе!")
+    print("="*60)
     
-    # Запускаем ассистента
-    print("🎙️ Запуск голосового ассистента...")
-    print("\n" + "="*50)
-    print("Доступные команды:")
-    print("  1. привет")
-    print("  2. как дела")
-    print("  3. открой браузер")
-    print("  4. открой панель управления")
-    print("  5. стоп")
-    print("="*50 + "\n")
+    print("\n🚀 Популярные команды:")
+    print("   • 'привет' - Активировать помощника")
+    print("   • 'открой браузер' - Запустить браузер")
+    print("   • 'сколько времени' - Узнать время")
+    print("   • 'расскажи шутку' - Развеселиться")
+    print("   • 'сделай скриншот' - Сделать скрин")
+    print("   • 'что ты умеешь' - Все команды")
+    print("   • 'пока' - Завершить работу")
+    print("="*60 + "\n")
     
-    from assistant import SuperLiteAssistant
-    assistant = SuperLiteAssistant()
-    assistant.run()
-
-def run_web_server():
-    """Запуск веб-сервера"""
-    from web_panel import app
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+    # Запуск
+    try:
+        from assistant import VoxPersonalV4
+        assistant = VoxPersonalV4()
+        assistant.run()
+    except ImportError:
+        print("❌ Файл assistant.py не найден!")
+    except KeyboardInterrupt:
+        print("\n👋 Завершение работы")
+    except Exception as e:
+        print(f"\n❌ Ошибка: {e}")
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\n\n👋 Завершение работы...")
-        sys.exit(0)
+    main()
