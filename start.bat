@@ -1,68 +1,100 @@
 @echo off
 chcp 65001 > nul
-title VoxPersonal v4 - Умный помощник
+title VoxPersonal v2 - Улучшенное распознавание
 
 echo.
 echo ====================================================
-echo            🤖 VoxPersonal v4
-echo        Умный голосовой помощник
+echo         🎙️ VoxPersonal v2
+echo    Улучшенное распознавание речи • 7 команд
 echo ====================================================
 echo.
 
 echo [1] Проверка Python...
 python --version > nul 2>&1
 if errorlevel 1 (
-    echo ❌ Python не установлен!
-    echo Скачайте с: https://python.org/downloads/
+    echo ❌ Python не установлен или не найден!
+    echo.
+    echo Скачайте Python 3.7+ с официального сайта:
+    echo https://www.python.org/downloads/
+    echo.
+    echo После установки перезапустите командную строку
+    echo.
     pause
     exit /b 1
 )
 
-echo [2] Установка необходимых библиотек...
+echo [2] Проверка и установка библиотек...
 echo.
+python -c "import speech_recognition" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка speechrecognition...
+    pip install speechrecognition --quiet
+)
 
-REM Установка основных библиотек
-pip install --upgrade pip --quiet 2>nul
+python -c "import pyttsx3" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка pyttsx3...
+    pip install pyttsx3 --quiet
+)
 
-echo Устанавливаю SpeechRecognition...
-pip install speechrecognition --quiet 2>nul
+python -c "import flask" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка flask...
+    pip install flask --quiet
+)
 
-echo Устанавливаю pyttsx3...
-pip install pyttsx3 --quiet 2>nul
+python -c "import pyautogui" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка pyautogui...
+    pip install pyautogui --quiet
+)
 
-echo Устанавливаю pyautogui...
-pip install pyautogui --quiet 2>nul
+python -c "import requests" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка requests...
+    pip install requests --quiet
+)
 
-echo Устанавливаю requests...
-pip install requests --quiet 2>nul
+python -c "import pyaudio" 2>nul
+if errorlevel 1 (
+    echo 📦 Установка pyaudio...
+    echo Если возникает ошибка, скачайте .whl файл:
+    echo https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+    pip install pyaudio --quiet 2>nul || echo ⚠️ Pyaudio может потребовать ручной установки
+)
 
 echo.
-echo [3] Проверка установки...
-python -c "import speech_recognition" 2>nul && echo ✅ SpeechRecognition установлен
-python -c "import pyttsx3" 2>nul && echo ✅ pyttsx3 установлен
-python -c "import pyautogui" 2>nul && echo ✅ pyautogui установлен
+echo [3] Создание папок...
+if not exist "shared" mkdir shared
 
 echo.
-echo [4] Запуск помощника...
+echo [4] Запуск системы...
 echo.
-echo 💡 Советы:
-echo    • Убедитесь что микрофон включен
-echo    • Говорите четко и не торопитесь
-echo    • Для активации скажите "привет" или "эй"
+echo 📢 ДОСТУПНЫЕ КОМАНДЫ:
+echo   1. привет
+echo   2. как дела
+echo   3. открой браузер
+echo   4. открой панель управления
+echo   5. громче
+echo   6. тише
+echo   7. пока
 echo.
-
-timeout /t 2 /nobreak >nul
+echo 🌐 Веб-панель: http://localhost:5000
+echo.
+echo 💡 Говорите четко и ждите ответа ассистента
+echo.
 
 python run.py
 
 if errorlevel 1 (
     echo.
-    echo ❌ Произошла ошибка
+    echo ❌ Произошла ошибка при запуске
     echo.
-    echo Попробуйте:
-    echo 1. Запустить от администратора
-    echo 2. pip install pyaudio
-    echo 3. Проверить микрофон
+    echo 🔧 Решение проблем:
+    echo   1. Проверьте подключение к интернету
+    echo   2. Убедитесь что микрофон подключен
+    echo   3. Попробуйте запустить от имени администратора
+    echo.
     pause
 )
 

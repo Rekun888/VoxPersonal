@@ -1,22 +1,37 @@
 {
   "привет": {
-    "response": "Привет! Я голосовой ассистент VoxPersonal Super Lite",
-    "type": "basic"
+    "response": "Привет! Я голосовой ассистент VoxPersonal v2",
+    "type": "basic",
+    "description": "Активация ассистента"
   },
   "как дела": {
     "response": "Всё отлично! Готов помогать вам",
-    "type": "basic"
+    "type": "basic",
+    "description": "Спросить как дела"
   },
   "открой браузер": {
     "action": "open_browser",
-    "type": "system"
+    "type": "system",
+    "description": "Открыть Google в браузере"
   },
   "открой панель управления": {
     "action": "open_control_panel",
-    "type": "system"
+    "type": "system",
+    "description": "Открыть панель управления Windows"
   },
-  "стоп": {
-    "response": "До свидания!",
-    "type": "control"
+  "громче": {
+    "action": "volume_up",
+    "type": "media",
+    "description": "Увеличить громкость"
+  },
+  "тише": {
+    "action": "volume_down",
+    "type": "media",
+    "description": "Уменьшить громкость"
+  },
+  "пока": {
+    "response": "До свидания! Буду ждать вашего возвращения",
+    "type": "control",
+    "description": "Завершить работу"
   }
 }
