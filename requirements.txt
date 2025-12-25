@@ -1,0 +1,5 @@
+speechrecognition==3.10.0
+pyttsx3==2.90
+flask==2.3.2
+pyautogui==0.9.54
+requests==2.31.0

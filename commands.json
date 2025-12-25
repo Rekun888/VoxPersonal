@@ -1,0 +1,22 @@
+{
+  "привет": {
+    "response": "Привет! Я голосовой ассистент VoxPersonal Super Lite",
+    "type": "basic"
+  },
+  "как дела": {
+    "response": "Всё отлично! Готов помогать вам",
+    "type": "basic"
+  },
+  "открой браузер": {
+    "action": "open_browser",
+    "type": "system"
+  },
+  "открой панель управления": {
+    "action": "open_control_panel",
+    "type": "system"
+  },
+  "стоп": {
+    "response": "До свидания!",
+    "type": "control"
+  }
+}
