@@ -1,11 +1,10 @@
 @echo off
 chcp 65001 > nul
-title VoxPersonal v4 - Умный помощник
+title VoxPersonal v3
 
 echo.
 echo ====================================================
-echo            🤖 VoxPersonal v4
-echo        Умный голосовой помощник
+echo         🎙️ VoxPersonal v3
 echo ====================================================
 echo.
 
@@ -18,51 +17,65 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [2] Установка необходимых библиотек...
+echo [2] Проверка и установка библиотек...
 echo.
 
-REM Установка основных библиотек
-pip install --upgrade pip --quiet 2>nul
+REM --- Проверяем базовые библиотеки ---
+python -c "import speech_recognition" 2>nul
+if errorlevel 1 (
+    echo Устанавливаю speechrecognition...
+    pip install speechrecognition --quiet
+)
 
-echo Устанавливаю SpeechRecognition...
-pip install speechrecognition --quiet 2>nul
+python -c "import pyttsx3" 2>nul
+if errorlevel 1 (
+    echo Устанавливаю pyttsx3...
+    pip install pyttsx3 --quiet
+)
 
-echo Устанавливаю pyttsx3...
-pip install pyttsx3 --quiet 2>nul
+python -c "import pyautogui" 2>nul
+if errorlevel 1 (
+    echo Устанавливаю pyautogui...
+    pip install pyautogui --quiet
+)
 
-echo Устанавливаю pyautogui...
-pip install pyautogui --quiet 2>nul
-
-echo Устанавливаю requests...
-pip install requests --quiet 2>nul
+REM --- Пробуем установить psutil ---
+echo Пробую установить psutil...
+pip install psutil --quiet 2>nul
+if errorlevel 1 (
+    echo ❌ Не удалось установить psutil стандартным способом
+    echo Пробую альтернативный способ...
+    pip install psutil==5.9.5 --no-build-isolation --quiet 2>nul
+    if errorlevel 1 (
+        echo ❌ psutil не установлен, работаем без него
+        echo Создаю заглушку для psutil...
+        
+        REM Создаем файл-заглушку psutil.py
+        echo import sys > psutil_stub.py
+        echo.
+        echo class Process: >> psutil_stub.py
+        echo    def __init__(self): >> psutil_stub.py
+        echo        pass >> psutil_stub.py
+        echo.
+        echo def process_iter(attrs=None): >> psutil_stub.py
+        echo    return [] >> psutil_stub.py
+    )
+)
 
 echo.
-echo [3] Проверка установки...
-python -c "import speech_recognition" 2>nul && echo ✅ SpeechRecognition установлен
-python -c "import pyttsx3" 2>nul && echo ✅ pyttsx3 установлен
-python -c "import pyautogui" 2>nul && echo ✅ pyautogui установлен
+echo [3] Создание папок...
+if not exist "shared" mkdir shared
 
 echo.
-echo [4] Запуск помощника...
+echo [4] Запуск системы...
 echo.
-echo 💡 Советы:
-echo    • Убедитесь что микрофон включен
-echo    • Говорите четко и не торопитесь
-echo    • Для активации скажите "привет" или "эй"
-echo.
-
-timeout /t 2 /nobreak >nul
 
 python run.py
 
 if errorlevel 1 (
     echo.
-    echo ❌ Произошла ошибка
-    echo.
-    echo Попробуйте:
-    echo 1. Запустить от администратора
-    echo 2. pip install pyaudio
-    echo 3. Проверить микрофон
+    echo ❌ Ошибка при запуске
+    echo Попробуйте: pip install psutil
     pause
 )
 

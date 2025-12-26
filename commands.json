@@ -1,22 +1,57 @@
 {
   "привет": {
-    "response": "Привет! Я голосовой ассистент VoxPersonal Super Lite",
-    "type": "basic"
+    "response": "Привет! Рад вас слышать",
+    "type": "basic",
+    "description": "Приветствие"
   },
   "как дела": {
-    "response": "Всё отлично! Готов помогать вам",
-    "type": "basic"
+    "response": "Всё прекрасно! Готов помочь",
+    "type": "basic",
+    "description": "Спросить как дела"
   },
   "открой браузер": {
     "action": "open_browser",
-    "type": "system"
+    "type": "system",
+    "description": "Открыть Google в браузере"
+  },
+  "закрой браузер": {
+    "action": "close_browser",
+    "type": "system",
+    "description": "Закрыть все браузеры"
   },
   "открой панель управления": {
     "action": "open_control_panel",
-    "type": "system"
+    "type": "system",
+    "description": "Открыть панель управления Windows"
+  },
+  "громче": {
+    "action": "volume_up",
+    "type": "media",
+    "description": "Увеличить громкость"
+  },
+  "тише": {
+    "action": "volume_down",
+    "type": "media",
+    "description": "Уменьшить громкость"
   },
   "стоп": {
+    "action": "media_stop",
+    "type": "media",
+    "description": "Остановить воспроизведение"
+  },
+  "пауза": {
+    "action": "media_pause_play",
+    "type": "media",
+    "description": "Пауза/продолжить воспроизведение"
+  },
+  "продолжи": {
+    "action": "media_pause_play",
+    "type": "media",
+    "description": "Продолжить воспроизведение"
+  },
+  "пока": {
     "response": "До свидания!",
-    "type": "control"
+    "type": "control",
+    "description": "Завершить работу"
   }
 }
