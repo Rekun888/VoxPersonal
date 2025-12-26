@@ -1,0 +1,17 @@
+# Основные библиотеки для VoxPersonal v6
+speechrecognition==3.10.0
+pyttsx3==2.90
+pyautogui==0.9.54
+requests==2.31.0
+
+# Для работы с микрофоном
+PyAudio==0.2.11
+
+# Для графического интерфейса
+Pillow==10.0.0
+
+# Дополнительные (по желанию)
+psutil==5.9.5
+beautifulsoup4==4.12.2
+lxml==4.9.3
+flask==2.3.2
