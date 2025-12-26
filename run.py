@@ -1,5 +1,5 @@
 """
-Запуск VoxPersonal v4
+Запуск VoxPersonal v5
 """
 
 import sys
@@ -36,7 +36,7 @@ def check_dependencies():
 def main():
     print("""
     ╔══════════════════════════════════════════╗
-    ║        🤖 VoxPersonal v4                ║
+    ║        🤖 VoxPersonal v5                ║
     ║      Умный голосовой помощник           ║
     ╚══════════════════════════════════════════╝
     """)
@@ -55,9 +55,15 @@ def main():
     print("🎉 Система готова к работе!")
     print("="*60)
     
+    print("\n🚀 Новые возможности v5:")
+    print("   • 'вокс' - Новая команда активации")
+    print("   • 'вокс [команда]' - Быстрая активация с командой")
+    print("   • 'открой сайт [название]' - Открыть любой сайт")
+    print("="*60)
+    
     print("\n🚀 Популярные команды:")
-    print("   • 'привет' - Активировать помощника")
-    print("   • 'открой браузер' - Запустить браузер")
+    print("   • 'вокс' или 'привет' - Активировать помощника")
+    print("   • 'открой сайт гитхаб' - Открыть GitHub")
     print("   • 'сколько времени' - Узнать время")
     print("   • 'расскажи шутку' - Развеселиться")
     print("   • 'сделай скриншот' - Сделать скрин")
@@ -67,8 +73,8 @@ def main():
     
     # Запуск
     try:
-        from assistant import VoxPersonalV4
-        assistant = VoxPersonalV4()
+        from assistant import VoxPersonalV5
+        assistant = VoxPersonalV5()
         assistant.run()
     except ImportError:
         print("❌ Файл assistant.py не найден!")

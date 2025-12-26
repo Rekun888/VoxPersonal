@@ -1,6 +1,6 @@
 """
-VoxPersonal v4 - Умный ассистент с продвинутыми командами
-Команды: 20+ полезных функций
+VoxPersonal v5 - Умный ассистент с продвинутыми командами
+Команды: 25+ полезных функций
 """
 
 import speech_recognition as sr
@@ -17,15 +17,17 @@ import requests
 import threading
 from typing import Optional, Dict, List
 import sys
+import re
 
-class VoxPersonalV4:
+class VoxPersonalV5:
     def __init__(self):
-        self.name = "Vox Personal v4"
+        self.name = "Vox Personal v5"
         self.is_listening = False
         self.user_name = None
         self.volume = 50
         self.weather_api_key = None
         self.command_history = []
+        self.vox_mode = False
         
         # Расширенные команды
         self.commands = {
@@ -55,6 +57,7 @@ class VoxPersonalV4:
             # Интернет
             "открой youtube": self._open_youtube,
             "открой вк": self._open_vk,
+            "открой сайт": self._open_website,
             "поиск в интернете": self._web_search,
             "какая погода": self._weather,
             "курс валют": self._currency_rate,
@@ -90,6 +93,7 @@ class VoxPersonalV4:
             "добрый вечер": "привет",
             "эй": "привет",
             "слушай": "привет",
+            "вокс": "привет",
             
             "как жизнь": "как дела",
             "как ты": "как дела",
@@ -200,6 +204,32 @@ class VoxPersonalV4:
             "ещё раз": "повтори команду",
         }
         
+        # Популярные сайты
+        self.websites = {
+            "гугл": "https://google.com",
+            "яндекс": "https://yandex.ru",
+            "почту": "https://gmail.com",
+            "почта": "https://gmail.com",
+            "гитхаб": "https://github.com",
+            "гит": "https://github.com",
+            "стековерфлоу": "https://stackoverflow.com",
+            "стек": "https://stackoverflow.com",
+            "википедию": "https://wikipedia.org",
+            "википедия": "https://wikipedia.org",
+            "амазон": "https://amazon.com",
+            "эппл": "https://apple.com",
+            "майкрософт": "https://microsoft.com",
+            "фейсбук": "https://facebook.com",
+            "инстаграм": "https://instagram.com",
+            "твиттер": "https://twitter.com",
+            "телеграм": "https://telegram.org",
+            "вайбер": "https://viber.com",
+            "нетфликс": "https://netflix.com",
+            "дискорд": "https://discord.com",
+            "редит": "https://reddit.com",
+            "линкедин": "https://linkedin.com",
+        }
+        
         # Инициализация
         self._init_speech()
         self._load_config()
@@ -242,40 +272,106 @@ class VoxPersonalV4:
     
     def speak(self, text, wait=True):
         """Произнести текст"""
-        print(f"[{self.name}]: {text}")
+        print(f"\n🤖 [{self.name}]: {text}")
+        print("─" * 60)
         self.tts_engine.say(text)
         if wait:
             self.tts_engine.runAndWait()
+    
+    def _show_listening_animation(self):
+        """Показать анимацию прослушивания"""
+        print("\n" + "█" * 30)
+        print(" " * 10 + "🎤 СЛУШАЮ...")
+        print("█" * 30)
+    
+    def _show_processing_animation(self):
+        """Показать анимацию обработки"""
+        print("\n" + "░" * 30)
+        print(" " * 10 + "🔍 ОБРАБАТЫВАЮ...")
+        print("░" * 30)
+    
+    def _show_recognized_text(self, text):
+        """Показать распознанный текст"""
+        print("\n📝 РАСПОЗНАНО: ", end="")
+        print(f"\033[92m{text}\033[0m")  # Зеленый цвет
+        print("─" * 40)
     
     def listen(self, timeout=5, phrase_time_limit=7):
         """Слушать микрофон"""
         try:
             with self.microphone as source:
+                # Калибровка фонового шума
+                print("\n🔊 Калибровка фонового шума...")
                 self.recognizer.adjust_for_ambient_noise(source, duration=1)
-                print("🎤 Слушаю...")
                 
+                # Показать анимацию прослушивания
+                self._show_listening_animation()
+                
+                # Запись аудио
                 audio = self.recognizer.listen(
                     source, 
                     timeout=timeout,
                     phrase_time_limit=phrase_time_limit
                 )
                 
-                print("🔍 Распознаю...")
+                # Показать анимацию обработки
+                self._show_processing_animation()
+                
+                # Распознавание речи
+                print("\n📊 Распознаю команду...")
                 text = self.recognizer.recognize_google(audio, language="ru-RU").lower()
                 
                 if text:
-                    print(f"[Вы]: {text}")
+                    # Показать распознанный текст
+                    self._show_recognized_text(text)
                     return text
                 
         except sr.WaitTimeoutError:
+            print("\n⏰ Таймаут: голос не обнаружен")
             return None
         except sr.UnknownValueError:
+            print("\n❌ Не удалось распознать речь")
             return None
         except Exception as e:
-            print(f"❌ Ошибка слушания: {e}")
+            print(f"\n❌ Ошибка слушания: {e}")
             return None
     
-    # ===== НОВЫЕ КОМАНДЫ =====
+    # ===== КОМАНДЫ =====
+    
+    def _open_website(self, text=""):
+        """Открыть сайт по названию или URL"""
+        if not text:
+            self.speak("Какой сайт открыть?", wait=False)
+            query = self.listen()
+        else:
+            query = text
+        
+        if query:
+            print(f"\n🌐 Поиск сайта: {query}")
+            
+            # Проверяем популярные сайты
+            for site_name, url in self.websites.items():
+                if site_name in query:
+                    print(f"✅ Найден сайт: {site_name} -> {url}")
+                    webbrowser.open(url)
+                    return f"Открываю {site_name}"
+            
+            # Пробуем извлечь URL из текста
+            url_match = re.search(r'(https?://\S+|www\.\S+\.\w+)', query)
+            if url_match:
+                url = url_match.group(0)
+                if not url.startswith('http'):
+                    url = 'https://' + url
+                print(f"✅ Найден URL: {url}")
+                webbrowser.open(url)
+                return f"Открываю {url}"
+            
+            # Иначе ищем в Google
+            print(f"🔍 Не найден, ищу в Google: {query}")
+            webbrowser.open(f"https://www.google.com/search?q={query}")
+            return f"Ищу '{query}' в Google"
+        
+        return "Скажите название сайта"
     
     def _hello(self):
         """Приветствие с именем пользователя"""
@@ -284,7 +380,8 @@ class VoxPersonalV4:
             "Здравствуйте!",
             "Привет! Рад вас слышать.",
             "Добрый день!",
-            "Привет, друг!"
+            "Привет, друг!",
+            "Вокс на связи! Чем могу помочь?"
         ]
         
         if self.user_name:
@@ -305,6 +402,7 @@ class VoxPersonalV4:
     
     def _open_browser(self):
         """Открыть браузер с выбором"""
+        print("\n💻 Поиск установленных браузеров...")
         browsers = {
             "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             "firefox": r"C:\Program Files\Mozilla Firefox\firefox.exe",
@@ -314,18 +412,24 @@ class VoxPersonalV4:
         
         for name, path in browsers.items():
             try:
-                if os.path.exists(os.path.expandvars(path)):
-                    subprocess.Popen([path])
+                expanded_path = os.path.expandvars(path)
+                if os.path.exists(expanded_path):
+                    print(f"✅ Найден {name}: {expanded_path}")
+                    subprocess.Popen([expanded_path])
                     return f"Запускаю {name}"
+                else:
+                    print(f"❌ {name} не найден")
             except:
                 continue
         
         # Если не нашел браузеры, открываем через webbrowser
+        print("🌐 Запуск стандартного браузера...")
         webbrowser.open("https://google.com")
         return "Открываю Google в стандартном браузере"
     
     def _close_browser(self):
         """Закрыть все браузеры (умный способ)"""
+        print("\n🛑 Закрытие браузеров...")
         try:
             if os.name == 'nt':  # Windows
                 subprocess.run('taskkill /f /im chrome.exe /t', shell=True, capture_output=True)
@@ -367,7 +471,14 @@ class VoxPersonalV4:
         try:
             screenshot = pyautogui.screenshot()
             filename = f"screenshot_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-            screenshot.save(filename)
+            
+            # Создаем папку для скриншотов если её нет
+            if not os.path.exists('screenshots'):
+                os.makedirs('screenshots')
+            
+            filepath = os.path.join('screenshots', filename)
+            screenshot.save(filepath)
+            print(f"📸 Скриншот сохранен: {filepath}")
             return f"Скриншот сохранён как {filename}"
         except Exception as e:
             return f"Не удалось сделать скриншот: {str(e)}"
@@ -378,6 +489,7 @@ class VoxPersonalV4:
             for _ in range(5):
                 pyautogui.press('volumeup')
             self.volume = min(100, self.volume + 20)
+            print(f"🔊 Громкость увеличена: {self.volume}%")
             return f"Громкость: {self.volume}%"
         except:
             return "Используйте кнопки громкости на клавиатуре"
@@ -388,6 +500,7 @@ class VoxPersonalV4:
             for _ in range(5):
                 pyautogui.press('volumedown')
             self.volume = max(0, self.volume - 20)
+            print(f"🔉 Громкость уменьшена: {self.volume}%")
             return f"Громкость: {self.volume}%"
         except:
             return "Используйте кнопки громкости на клавиатуре"
@@ -447,6 +560,7 @@ class VoxPersonalV4:
         self.speak("Что искать в интернете?", wait=False)
         query = self.listen()
         if query:
+            print(f"🔍 Поиск в Google: {query}")
             webbrowser.open(f"https://www.google.com/search?q={query}")
             return f"Ищу '{query}' в Google"
         return "Скажите что искать"
@@ -460,18 +574,22 @@ class VoxPersonalV4:
         city = random.choice(cities)
         condition = random.choice(conditions)
         
+        print(f"🌤️ Погода в {city}: {temps}°C, {condition}")
         return f"В {city} сейчас {temps}°C, {condition}. Для точного прогноза скажите 'установи ключ погоды'"
     
     def _currency_rate(self):
         """Курс валют (заглушка)"""
         usd = round(random.uniform(70, 90), 2)
         eur = round(random.uniform(75, 95), 2)
+        print(f"💱 Курс валют: USD = {usd} RUB, EUR = {eur} RUB")
         return f"Курс доллара: {usd} руб., евро: {eur} руб. Данные приблизительные"
     
     def _what_time(self):
         """Текущее время"""
         now = datetime.datetime.now()
-        return f"Сейчас {now.strftime('%H:%M')}"
+        time_str = now.strftime('%H:%M')
+        print(f"🕐 Текущее время: {time_str}")
+        return f"Сейчас {time_str}"
     
     def _what_date(self):
         """Текущая дата"""
@@ -480,11 +598,14 @@ class VoxPersonalV4:
             "января", "февраля", "марта", "апреля", "мая", "июня",
             "июля", "августа", "сентября", "октября", "ноября", "декабря"
         ]
-        return f"Сегодня {now.day} {months[now.month-1]} {now.year} года"
+        date_str = f"{now.day} {months[now.month-1]} {now.year} года"
+        print(f"📅 Текущая дата: {date_str}")
+        return f"Сегодня {date_str}"
     
     def _random_number(self):
         """Случайное число"""
         num = random.randint(1, 100)
+        print(f"🎲 Случайное число: {num}")
         return f"Ваше случайное число: {num}"
     
     def _tell_joke(self):
@@ -498,7 +619,9 @@ class VoxPersonalV4:
             "Что говорит null, когда встречает undefined? Ты мне не определен!",
             "Почему компьютер пошёл к врачу? У него был вирус!",
         ]
-        return random.choice(jokes)
+        joke = random.choice(jokes)
+        print(f"😂 Шутка: {joke}")
+        return joke
     
     def _who_are_you(self):
         """Представление ассистента"""
@@ -507,7 +630,9 @@ class VoxPersonalV4:
     def _play_movie(self):
         """Включить кино"""
         platforms = ["https://www.netflix.com", "https://www.kinopoisk.ru", "https://www.ivi.ru"]
-        webbrowser.open(random.choice(platforms))
+        platform = random.choice(platforms)
+        print(f"🎬 Открываю платформу: {platform}")
+        webbrowser.open(platform)
         return "Открываю платформу для просмотра фильмов"
     
     def _show_cat(self):
@@ -525,7 +650,9 @@ class VoxPersonalV4:
             "Не бойтесь пробовать новые технологии сегодня!",
             "Ваш код сегодня будет работать с первого раза!",
         ]
-        return random.choice(fortunes)
+        fortune = random.choice(fortunes)
+        print(f"🔮 Предсказание: {fortune}")
+        return fortune
     
     def _shutdown_pc(self):
         """Выключить компьютер"""
@@ -559,10 +686,10 @@ class VoxPersonalV4:
     def _help(self):
         """Показать список команд"""
         categories = {
-            "🎯 Базовые": ["привет", "как дела", "пока"],
+            "🎯 Базовые": ["привет", "вокс (активация)", "как дела", "пока"],
             "💻 Система": ["открой браузер", "закрой браузер", "открой панель управления", "сделай скриншот"],
+            "🌐 Сайты": ["открой сайт [название]", "открой youtube", "открой вк", "поиск в интернете"],
             "🎵 Медиа": ["громче", "тише", "стоп", "пауза", "следующий трек", "включи музыку"],
-            "🌐 Интернет": ["открой youtube", "поиск в интернете", "какая погода", "курс валют"],
             "📅 Информация": ["сколько времени", "какая дата", "случайное число", "расскажи шутку"],
             "🎮 Развлечения": ["включи кино", "покажи котика", "скажи предсказание"],
             "⚙️ Управление": ["выключи компьютер", "сверни все окна", "рабочий стол"]
@@ -575,13 +702,19 @@ class VoxPersonalV4:
                 response += f"  • {cmd}\n"
             response += "\n"
         
-        response += "Просто скажите 'привет' для начала общения!"
+        response += "Просто скажите 'вокс' или 'привет' для начала общения!"
+        print("\n📋 СПИСОК КОМАНД:")
+        for category, commands in categories.items():
+            print(f"\n{category}:")
+            for cmd in commands:
+                print(f"  • {cmd}")
         return response
     
     def _repeat_command(self):
         """Повторить последнюю команду"""
         if self.command_history:
             last_cmd = self.command_history[-1]
+            print(f"🔄 Повтор команды: {last_cmd}")
             return f"Повторяю последнюю команду: '{last_cmd}'"
         return "История команд пуста"
     
@@ -595,6 +728,7 @@ class VoxPersonalV4:
             "Пока, не скучайте!"
         ]
         self.is_listening = False
+        self.vox_mode = False
         return random.choice(farewells)
     
     def process_command(self, text):
@@ -603,22 +737,57 @@ class VoxPersonalV4:
             return None
         
         # Сохраняем в историю
-        self.command_history.append(text[:50])  # Ограничиваем длину
+        self.command_history.append(text[:50])
+        print(f"\n📚 История команд: {self.command_history[-3:]}")
+        
+        # Обработка команды "открой сайт"
+        if "открой сайт" in text:
+            site_query = text.replace("открой сайт", "").strip()
+            return self._open_website(site_query)
         
         # Проверяем точное совпадение
         for cmd, func in self.commands.items():
             if cmd in text:
+                print(f"🎯 Найдена команда: {cmd}")
                 return func()
         
         # Проверяем синонимы
         for synonym, command in self.synonyms.items():
             if synonym in text and command in self.commands:
+                print(f"🔍 Синоним: {synonym} -> {command}")
                 return self.commands[command]()
+        
+        # Режим "Вокс" - пользователь говорит "Вокс" + команда
+        if "вокс" in text:
+            # Извлекаем команду после "вокс"
+            command_part = text.replace("вокс", "").strip()
+            if command_part:
+                for cmd, func in self.commands.items():
+                    if cmd in command_part:
+                        print(f"🎯 Вокс-команда: {cmd}")
+                        return func()
+            
+            # Если просто "вокс" без команды, активируем режим
+            self.vox_mode = True
+            return "Слушаю вас! Говорите команду."
+        
+        # Режим "Вокс" активирован - обрабатываем как команду
+        if self.vox_mode and text:
+            for cmd, func in self.commands.items():
+                if cmd in text:
+                    print(f"🎯 Вокс-режим: {cmd}")
+                    return func()
+            # Если не нашли команду, проверяем синонимы
+            for synonym, command in self.synonyms.items():
+                if synonym in text and command in self.commands:
+                    print(f"🔍 Вокс-синоним: {synonym} -> {command}")
+                    return self.commands[command]()
         
         # Установка имени пользователя
         if "меня зовут" in text:
             name = text.split("меня зовут")[-1].strip()
             self.user_name = name
+            print(f"👤 Установлено имя: {name}")
             return f"Приятно познакомиться, {name}!"
         
         # Если не распознали
@@ -628,26 +797,37 @@ class VoxPersonalV4:
             "Повторите, пожалуйста, я не понял",
             "Можете повторить команду?"
         ]
-        return random.choice(responses)
+        response = random.choice(responses)
+        print(f"❌ Не распознано: {text}")
+        return response
     
     def run(self):
         """Основной цикл работы"""
-        self.speak(f"{self.name} запущен. Скажите 'привет' для начала общения!")
+        print("\n" + "=" * 60)
+        print("🤖 VoxPersonal v5 - Умный голосовой помощник")
+        print("=" * 60)
+        
+        self.speak(f"{self.name} запущен. Скажите 'вокс' или 'привет' для начала общения!")
         
         while True:
             try:
                 # Ждем активации
-                print("\n🔍 Жду активации...")
+                print("\n" + "━" * 40)
+                print("⏳ ЖДУ АКТИВАЦИИ... (скажите 'вокс' или 'привет')")
+                print("━" * 40)
                 text = self.listen()
                 
-                if text and any(word in text for word in ["привет", "эй", "окей", "слушай", "компьютер"]):
+                if text and any(word in text for word in ["привет", "эй", "окей", "слушай", "компьютер", "вокс"]):
+                    print("\n🚀 АКТИВАЦИЯ УСПЕШНА!")
                     response = self.process_command(text)
                     if response:
                         self.speak(response)
                     
                     # Режим активного слушания
                     while True:
-                        print("\n📝 Ожидаю команду...")
+                        print("\n" + "━" * 40)
+                        print("📝 ОЖИДАЮ КОМАНДУ... (скажите 'пока' для выхода)")
+                        print("━" * 40)
                         command = self.listen()
                         
                         if command:
@@ -669,20 +849,13 @@ class VoxPersonalV4:
                         self.speak(response)
                         
             except KeyboardInterrupt:
+                print("\n\n🛑 Прерывание пользователем")
                 self.speak("Работа завершена")
                 break
             except Exception as e:
-                print(f"❌ Ошибка: {e}")
+                print(f"\n❌ Критическая ошибка: {e}")
                 time.sleep(1)
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("🤖 VoxPersonal v4 - Умный голосовой помощник")
-    print("=" * 60)
-    print("\n📋 Доступно более 30 команд!")
-    print("💡 Скажите 'что ты умеешь' для списка возможностей")
-    print("🎤 Активируйте помощника словом 'привет' или 'эй'\n")
-    print("=" * 60)
-    
-    assistant = VoxPersonalV4()
+    assistant = VoxPersonalV5()
     assistant.run()
