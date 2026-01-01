@@ -1,8 +1,0 @@
-{
-  "user_name": "Viktor",
-  "voice_speed": 180.0,
-  "volume": 50.0,
-  "auto_start": false,
-  "voice_activation": true,
-  "weather_api_key": null
-}

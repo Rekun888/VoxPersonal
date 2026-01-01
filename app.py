@@ -4,6 +4,7 @@ VoxPersonal v6 - Premium AI Assistant Interface
 """
 
 import tkinter as tk
+from tkinter import ttk
 import webbrowser
 
 class VoxPersonalApp:
@@ -27,6 +28,10 @@ class VoxPersonalApp:
             'transparent': '#1a1a1a'
         }
         
+        # Версии
+        self.app_version = "v0.1"
+        self.assistant_version = "V6"
+        
         # Текущий активный раздел
         self.active_section = 'home'
         self.active_settings_subsection = 'general'
@@ -48,6 +53,9 @@ class VoxPersonalApp:
         self.body_font = ('Segoe UI', 11)
         self.button_font = ('Segoe UI', 10, 'bold')
         self.subnav_font = ('Segoe UI', 10)
+        self.version_font = ('Segoe UI', 24, 'bold')
+        self.developer_font = ('Segoe UI', 16, 'bold')
+        self.info_font = ('Segoe UI', 14)
         
     def center_window(self):
         """Центрирование окна на экране"""
@@ -302,13 +310,15 @@ class VoxPersonalApp:
         # Создаем подменю настроек
         self.create_settings_submenu(left_column)
         
-        # Создаем контейнер для подразделов
-        self.settings_content = tk.Frame(right_column, bg=self.colors['bg_dark'])
-        self.settings_content.pack(fill=tk.BOTH, expand=True)
+        # Создаем контейнер для подразделов с прокруткой
+        self.create_scrollable_settings_content(right_column)
         
         # Создаем подразделы настроек
         self.settings_pages = {}
-        self.create_settings_pages()
+        self.create_general_settings()
+        self.create_appearance_settings()
+        self.create_launch_settings()
+        self.create_about_settings()
         
         # Показываем первый подраздел
         self.show_settings_subsection('general')
@@ -368,70 +378,308 @@ class VoxPersonalApp:
         # Обновляем подсветку
         self.update_settings_highlight()
     
-    def create_settings_pages(self):
-        """Создание страниц подразделов настроек"""
-        subsections = ['general', 'appearance', 'launch', 'about']
+    def create_scrollable_settings_content(self, parent):
+        """Создание прокручиваемого контейнера для подразделов настроек"""
+        # Создаем canvas и скроллбар
+        canvas = tk.Canvas(parent, bg=self.colors['bg_dark'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
         
-        for subsection in subsections:
-            page = tk.Frame(self.settings_content, bg=self.colors['bg_dark'])
-            self.settings_pages[subsection] = page
-            
-            # Карточка контента
-            content_card = tk.Frame(page, bg=self.colors['bg_card'])
-            content_card.pack(expand=True, padx=20, pady=20)
-            
-            # Заголовок подраздела
-            titles = {
-                'general': '⚙️ ОСНОВНЫЕ НАСТРОЙКИ',
-                'appearance': '🎨 ОФОРМЛЕНИЕ',
-                'launch': '🚀 ПАРАМЕТРЫ ЗАПУСКА',
-                'about': 'ℹ️ О ПРОГРАММЕ'
-            }
-            
-            title_label = tk.Label(content_card,
-                                 text=titles[subsection],
-                                 font=self.header_font,
-                                 bg=self.colors['bg_card'],
-                                 fg=self.colors['text_primary'])
-            title_label.pack(pady=30)
-            
-            # Описание подраздела
-            descriptions = {
-                'general': 'Основные параметры и конфигурация системы',
-                'appearance': 'Настройки интерфейса и внешнего вида',
-                'launch': 'Параметры автозапуска и инициализации',
-                'about': 'Информация о программе и разработчике'
-            }
-            
-            desc_label = tk.Label(content_card,
-                                text=descriptions[subsection],
-                                font=self.body_font,
-                                bg=self.colors['bg_card'],
-                                fg=self.colors['text_secondary'])
-            desc_label.pack(pady=10)
-            
-            # Анимация загрузки
-            loading_frame = tk.Frame(content_card, bg=self.colors['bg_card'])
-            loading_frame.pack(pady=30)
-            
-            # Точки загрузки
-            dots = []
-            for i in range(3):
-                dot = tk.Canvas(loading_frame, width=8, height=8, bg=self.colors['bg_card'], highlightthickness=0)
-                dot.pack(side=tk.LEFT, padx=3)
-                dot.create_oval(0, 0, 8, 8, fill=self.colors['accent'], outline='')
-                dots.append(dot)
-            
-            # Сообщение
-            message_label = tk.Label(content_card,
-                                   text="ПОДРАЗДЕЛ В РАЗРАБОТКЕ",
-                                   font=('Segoe UI', 12),
-                                   bg=self.colors['bg_card'],
-                                   fg=self.colors['text_secondary'])
-            message_label.pack(pady=20)
-            
-            # Кнопка "Новости разработки" в каждом подразделе
-            self.create_news_button(content_card)
+        # Настраиваем скроллбар
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['bg_dark'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Упаковываем элементы
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Добавляем прокрутку колесиком мыши
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
+        # Сохраняем ссылки
+        self.settings_canvas = canvas
+        self.settings_scrollable_frame = scrollable_frame
+    
+    def create_general_settings(self):
+        """Создание раздела Основные настройки"""
+        page = tk.Frame(self.settings_scrollable_frame, bg=self.colors['bg_dark'])
+        self.settings_pages['general'] = page
+        
+        # Карточка контента
+        content_card = tk.Frame(page, bg=self.colors['bg_card'])
+        content_card.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Заголовок подраздела
+        title_label = tk.Label(content_card,
+                             text="⚙️ ОСНОВНЫЕ НАСТРОЙКИ",
+                             font=self.header_font,
+                             bg=self.colors['bg_card'],
+                             fg=self.colors['text_primary'])
+        title_label.pack(pady=30)
+        
+        # Описание подраздела
+        desc_label = tk.Label(content_card,
+                            text="Основные параметры и конфигурация системы",
+                            font=self.body_font,
+                            bg=self.colors['bg_card'],
+                            fg=self.colors['text_secondary'])
+        desc_label.pack(pady=10)
+        
+        # Анимация загрузки
+        loading_frame = tk.Frame(content_card, bg=self.colors['bg_card'])
+        loading_frame.pack(pady=30)
+        
+        # Точки загрузки
+        dots = []
+        for i in range(3):
+            dot = tk.Canvas(loading_frame, width=8, height=8, bg=self.colors['bg_card'], highlightthickness=0)
+            dot.pack(side=tk.LEFT, padx=3)
+            dot.create_oval(0, 0, 8, 8, fill=self.colors['accent'], outline='')
+            dots.append(dot)
+        
+        # Сообщение
+        message_label = tk.Label(content_card,
+                               text="ПОДРАЗДЕЛ В РАЗРАБОТКЕ",
+                               font=('Segoe UI', 12),
+                               bg=self.colors['bg_card'],
+                               fg=self.colors['text_secondary'])
+        message_label.pack(pady=20)
+        
+        # Кнопка "Новости разработки"
+        self.create_news_button(content_card)
+        
+        # Добавляем высоту для прокрутки
+        spacer = tk.Frame(content_card, height=400, bg=self.colors['bg_card'])
+        spacer.pack(fill=tk.X, pady=20)
+    
+    def create_appearance_settings(self):
+        """Создание раздела Оформление"""
+        page = tk.Frame(self.settings_scrollable_frame, bg=self.colors['bg_dark'])
+        self.settings_pages['appearance'] = page
+        
+        # Карточка контента
+        content_card = tk.Frame(page, bg=self.colors['bg_card'])
+        content_card.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Заголовок подраздела
+        title_label = tk.Label(content_card,
+                             text="🎨 ОФОРМЛЕНИЕ",
+                             font=self.header_font,
+                             bg=self.colors['bg_card'],
+                             fg=self.colors['text_primary'])
+        title_label.pack(pady=30)
+        
+        # Описание подраздела
+        desc_label = tk.Label(content_card,
+                            text="Настройки интерфейса и внешнего вида",
+                            font=self.body_font,
+                            bg=self.colors['bg_card'],
+                            fg=self.colors['text_secondary'])
+        desc_label.pack(pady=10)
+        
+        # Анимация загрузки
+        loading_frame = tk.Frame(content_card, bg=self.colors['bg_card'])
+        loading_frame.pack(pady=30)
+        
+        # Точки загрузки
+        dots = []
+        for i in range(3):
+            dot = tk.Canvas(loading_frame, width=8, height=8, bg=self.colors['bg_card'], highlightthickness=0)
+            dot.pack(side=tk.LEFT, padx=3)
+            dot.create_oval(0, 0, 8, 8, fill=self.colors['accent'], outline='')
+            dots.append(dot)
+        
+        # Сообщение
+        message_label = tk.Label(content_card,
+                               text="ПОДРАЗДЕЛ В РАЗРАБОТКЕ",
+                               font=('Segoe UI', 12),
+                               bg=self.colors['bg_card'],
+                               fg=self.colors['text_secondary'])
+        message_label.pack(pady=20)
+        
+        # Кнопка "Новости разработки"
+        self.create_news_button(content_card)
+        
+        # Добавляем высоту для прокрутки
+        spacer = tk.Frame(content_card, height=400, bg=self.colors['bg_card'])
+        spacer.pack(fill=tk.X, pady=20)
+    
+    def create_launch_settings(self):
+        """Создание раздела Параметры запуска"""
+        page = tk.Frame(self.settings_scrollable_frame, bg=self.colors['bg_dark'])
+        self.settings_pages['launch'] = page
+        
+        # Карточка контента
+        content_card = tk.Frame(page, bg=self.colors['bg_card'])
+        content_card.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Заголовок подраздела
+        title_label = tk.Label(content_card,
+                             text="🚀 ПАРАМЕТРЫ ЗАПУСКА",
+                             font=self.header_font,
+                             bg=self.colors['bg_card'],
+                             fg=self.colors['text_primary'])
+        title_label.pack(pady=30)
+        
+        # Описание подраздела
+        desc_label = tk.Label(content_card,
+                            text="Параметры автозапуска и инициализации",
+                            font=self.body_font,
+                            bg=self.colors['bg_card'],
+                            fg=self.colors['text_secondary'])
+        desc_label.pack(pady=10)
+        
+        # Анимация загрузки
+        loading_frame = tk.Frame(content_card, bg=self.colors['bg_card'])
+        loading_frame.pack(pady=30)
+        
+        # Точки загрузки
+        dots = []
+        for i in range(3):
+            dot = tk.Canvas(loading_frame, width=8, height=8, bg=self.colors['bg_card'], highlightthickness=0)
+            dot.pack(side=tk.LEFT, padx=3)
+            dot.create_oval(0, 0, 8, 8, fill=self.colors['accent'], outline='')
+            dots.append(dot)
+        
+        # Сообщение
+        message_label = tk.Label(content_card,
+                               text="ПОДРАЗДЕЛ В РАЗРАБОТКЕ",
+                               font=('Segoe UI', 12),
+                               bg=self.colors['bg_card'],
+                               fg=self.colors['text_secondary'])
+        message_label.pack(pady=20)
+        
+        # Кнопка "Новости разработки"
+        self.create_news_button(content_card)
+        
+        # Добавляем высоту для прокрутки
+        spacer = tk.Frame(content_card, height=400, bg=self.colors['bg_card'])
+        spacer.pack(fill=tk.X, pady=20)
+    
+    def create_about_settings(self):
+        """Создание раздела О программе с версиями"""
+        page = tk.Frame(self.settings_scrollable_frame, bg=self.colors['bg_dark'])
+        self.settings_pages['about'] = page
+        
+        # Карточка контента (занимает всю высоту)
+        content_card = tk.Frame(page, bg=self.colors['bg_card'])
+        content_card.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Контейнер для центрирования контента по вертикали
+        center_container = tk.Frame(content_card, bg=self.colors['bg_card'])
+        center_container.pack(expand=True, fill=tk.BOTH)
+        
+        # Верхняя часть (пустое пространство)
+        top_spacer = tk.Frame(center_container, bg=self.colors['bg_card'], height=100)
+        top_spacer.pack(fill=tk.X)
+        
+        # Заголовок подраздела
+        title_label = tk.Label(center_container,
+                             text="ℹ️ О ПРОГРАММЕ",
+                             font=self.header_font,
+                             bg=self.colors['bg_card'],
+                             fg=self.colors['text_primary'])
+        title_label.pack(pady=20)
+        
+        # Описание подраздела
+        desc_label = tk.Label(center_container,
+                            text="Информация о программе и разработчике",
+                            font=self.info_font,
+                            bg=self.colors['bg_card'],
+                            fg=self.colors['text_secondary'])
+        desc_label.pack(pady=10)
+        
+        # Разделитель
+        separator = tk.Frame(center_container, height=2, bg='#333333')
+        separator.pack(fill=tk.X, pady=40)
+        
+        # Большая зона для версий
+        version_container = tk.Frame(center_container, bg=self.colors['bg_card'])
+        version_container.pack(fill=tk.BOTH, expand=True, pady=20)
+        
+        # Версия приложения (большая)
+        app_version_frame = tk.Frame(version_container, bg=self.colors['bg_card'])
+        app_version_frame.pack(pady=30)
+        
+        tk.Label(app_version_frame,
+                text="Версия приложения",
+                font=self.body_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['text_secondary']).pack()
+        
+        tk.Label(app_version_frame,
+                text=self.app_version,
+                font=self.version_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['primary']).pack(pady=10)
+        
+        # Версия ассистента (большая)
+        assistant_version_frame = tk.Frame(version_container, bg=self.colors['bg_card'])
+        assistant_version_frame.pack(pady=30)
+        
+        tk.Label(assistant_version_frame,
+                text="Версия ассистента",
+                font=self.body_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['text_secondary']).pack()
+        
+        tk.Label(assistant_version_frame,
+                text=self.assistant_version,
+                font=self.version_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['secondary']).pack(pady=10)
+        
+        # Разделитель
+        separator2 = tk.Frame(center_container, height=2, bg='#333333')
+        separator2.pack(fill=tk.X, pady=40)
+        
+        # Кнопка "Новости разработки"
+        self.create_news_button(center_container)
+        
+        # Разделитель
+        separator3 = tk.Frame(center_container, height=2, bg='#333333')
+        separator3.pack(fill=tk.X, pady=40)
+        
+        # Разработчик
+        developer_frame = tk.Frame(center_container, bg=self.colors['bg_card'])
+        developer_frame.pack(pady=20)
+        
+        tk.Label(developer_frame,
+                text="Разработчик",
+                font=self.body_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['text_secondary']).pack()
+        
+        tk.Label(developer_frame,
+                text="Rekun888",
+                font=self.developer_font,
+                bg=self.colors['bg_card'],
+                fg=self.colors['accent']).pack(pady=10)
+        
+        # Дополнительная информация
+        info_label = tk.Label(center_container,
+                            text="VOX PERSONAL - Умный голосовой ассистент",
+                            font=('Segoe UI', 11),
+                            bg=self.colors['bg_card'],
+                            fg='#666666')
+        info_label.pack(pady=10)
+        
+        # Нижняя часть (пустое пространство)
+        bottom_spacer = tk.Frame(center_container, bg=self.colors['bg_card'], height=100)
+        bottom_spacer.pack(fill=tk.X)
+        
+        # Добавляем высоту для прокрутки
+        spacer = tk.Frame(page, height=400, bg=self.colors['bg_dark'])
+        spacer.pack(fill=tk.X, pady=20)
     
     def create_news_button(self, parent):
         """Создание стильной кнопки Новости разработки"""
@@ -510,7 +758,7 @@ class VoxPersonalApp:
         for page in self.pages.values():
             page.pack_forget()
         
-        # Показать выбранную страницу
+        # Показываем выбранную страницу
         self.pages[page_name].pack(fill=tk.BOTH, expand=True)
         
         # Обновить подсветку кнопок
@@ -530,8 +778,12 @@ class VoxPersonalApp:
         for page in self.settings_pages.values():
             page.pack_forget()
         
-        # Показать выбранный подраздел
+        # Показываем выбранный подраздел
         self.settings_pages[subsection_name].pack(fill=tk.BOTH, expand=True)
+        
+        # Прокручиваем наверх
+        if hasattr(self, 'settings_canvas'):
+            self.settings_canvas.yview_moveto(0)
         
         # Обновить подсветку кнопок подразделов
         self.update_settings_highlight()
